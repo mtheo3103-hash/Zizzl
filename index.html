@@ -2,9 +2,10 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Zizzl - Fast Casual Party Games</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Socket.io CDNs -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
@@ -12,7 +13,7 @@
   <!-- Comic Background Pattern -->
   <div class="comic-bg"></div>
 
-  <!-- Audio Controls -->
+  <!-- Audio Controls Button -->
   <button id="music-toggle" class="btn-icon" onclick="toggleMusic()">
     <svg id="music-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
@@ -69,9 +70,7 @@
 
       <div class="player-list-container">
         <h3>SPIELER IN DER LOBBY (<span id="player-count">0</span>)</h3>
-        <div id="player-grid" class="player-grid">
-          <!-- Dynamisch per JS befüllt -->
-        </div>
+        <div id="player-grid" class="player-grid"></div>
       </div>
 
       <!-- Controls for Host only -->
@@ -84,6 +83,29 @@
             <option value="10">10 Runden</option>
           </select>
         </div>
+
+        <div class="game-selector-container">
+          <label>SPIELE AUSWÄHLEN:</label>
+          <div class="game-checkboxes">
+            <label class="game-option">
+              <input type="checkbox" value="snake" checked />
+              <span>Snake Rush</span>
+            </label>
+            <label class="game-option">
+              <input type="checkbox" value="speedtyping" checked />
+              <span>Speedtyping</span>
+            </label>
+            <label class="game-option">
+              <input type="checkbox" value="flappy" checked />
+              <span>Flappy Bird</span>
+            </label>
+            <label class="game-option">
+              <input type="checkbox" value="reaction" checked />
+              <span>Reflex Test</span>
+            </label>
+          </div>
+        </div>
+
         <button class="btn btn-primary btn-bounce" onclick="startGame()">
           <svg class="btn-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           SPIEL JETZT STARTEN
@@ -93,14 +115,21 @@
       <p id="client-wait-msg" class="wait-msg">Warte darauf, dass der Host das Spiel startet...</p>
     </section>
 
-    <!-- STEP 3: Game Canvas Area -->
+    <!-- STEP 3: Game Area -->
     <section id="screen-game" class="card hidden">
       <div class="game-header">
         <span id="round-indicator">Runde 1 / 5</span>
-        <span id="game-title">Speedtyping</span>
+        <span id="game-title">Snake Rush</span>
       </div>
+      
       <div id="game-viewport" class="game-viewport">
-        <h2>Bereit machen...</h2>
+        <!-- Minispiel HTML/Canvas lädt hier -->
+      </div>
+
+      <!-- Live-Ranking -->
+      <div id="live-leaderboard" class="leaderboard-box">
+        <h3>🏆 LIVE RANKING</h3>
+        <ol id="leaderboard-list"></ol>
       </div>
     </section>
 
