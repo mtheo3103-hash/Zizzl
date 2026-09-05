@@ -27,7 +27,6 @@ body {
   position: relative;
 }
 
-/* Comic Bubble Background Pattern */
 .comic-bg {
   position: absolute;
   top: 0;
@@ -39,7 +38,6 @@ body {
   z-index: 0;
 }
 
-/* App Layout */
 .app-container {
   position: relative;
   z-index: 10;
@@ -49,7 +47,6 @@ body {
   text-align: center;
 }
 
-/* Logo Styling */
 .logo {
   font-size: 4rem;
   color: #fff;
@@ -69,7 +66,6 @@ body {
   font-weight: 500;
 }
 
-/* Card Container (Kahoot Comic Box) */
 .card {
   background: var(--light);
   border: 4px solid var(--dark);
@@ -83,7 +79,6 @@ body {
   display: none !important;
 }
 
-/* Form Elements & Inputs */
 .input-group {
   text-align: left;
   margin-bottom: 15px;
@@ -115,7 +110,6 @@ input:focus {
   border-color: var(--purple);
 }
 
-/* Buttons */
 .btn {
   width: 100%;
   padding: 16px;
@@ -145,7 +139,6 @@ input:focus {
   animation: bounce 2s infinite;
 }
 
-/* SVG Icon Styling */
 .btn-svg {
   width: 22px;
   height: 22px;
@@ -159,7 +152,6 @@ input:focus {
   fill: #ffffff;
 }
 
-/* Audio Toggle Button */
 .btn-icon {
   position: fixed;
   top: 15px;
@@ -177,17 +169,10 @@ input:focus {
   justify-content: center;
 }
 
-.btn-icon:active {
-  transform: translateY(2px);
-  box-shadow: 1px 1px 0px var(--dark);
-}
-
 .btn-icon svg {
   fill: var(--dark);
-  transition: fill 0.2s ease;
 }
 
-/* Divider */
 .divider {
   margin: 15px 0;
   border-bottom: 2px dashed #dcdde1;
@@ -205,17 +190,11 @@ input:focus {
   color: #a4b0be;
 }
 
-/* Join Box */
 .join-box {
   margin-top: 15px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-/* Lobby Styling */
-.lobby-header {
-  margin-bottom: 20px;
 }
 
 .pin-display span {
@@ -243,12 +222,6 @@ input:focus {
   border: 2px solid var(--dark);
 }
 
-.player-list-container h3 {
-  font-size: 1rem;
-  color: var(--dark);
-  margin-bottom: 10px;
-}
-
 .player-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -268,36 +241,37 @@ input:focus {
   font-size: 0.9rem;
   color: var(--dark);
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  word-break: break-word;
 }
 
-/* Host Panel & Settings */
-.setting-row {
+.game-selector-container {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.game-checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.game-option {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  text-align: left;
+  background: #f1f2f6;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 2px solid var(--dark);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.setting-row label {
-  margin-bottom: 0;
-  font-size: 1rem;
-}
-
-.setting-row select {
+.game-option input {
   width: auto;
-  padding: 8px 12px;
+  margin-right: 8px;
 }
 
-.wait-msg {
-  font-size: 0.9rem;
-  color: #747d8c;
-  font-weight: 500;
-  margin-top: 10px;
-}
-
-/* Game Viewport Header */
 .game-header {
   display: flex;
   justify-content: space-between;
@@ -308,7 +282,61 @@ input:focus {
   padding-bottom: 10px;
 }
 
-/* Animations */
+.snake-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+canvas {
+  border: 3px solid var(--dark);
+  border-radius: 12px;
+  background: #2f3542;
+  touch-action: none;
+}
+
+.leaderboard-box {
+  background: #f1f2f6;
+  border: 3px solid var(--dark);
+  border-radius: 16px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+#leaderboard-list {
+  list-style: none;
+  padding: 0;
+}
+
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 2px solid var(--dark);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.leaderboard-item .rank {
+  color: var(--primary);
+}
+
+.leaderboard-item .p-score {
+  color: var(--purple);
+}
+
 @keyframes bounce {
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-6px); }
