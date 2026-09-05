@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zizzl - Fast Casual Party Games</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Socket.io Library -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+  <!-- Comic Background Pattern -->
+  <div class="comic-bg"></div>
+
+  <!-- Audio Controls -->
+  <button id="music-toggle" class="btn-icon" onclick="toggleMusic()">🎵</button>
+
+  <main class="app-container">
+    
+    <!-- Logo Header -->
+    <header class="logo-wrapper">
+      <h1 class="logo">ZIZZL<span>!</span></h1>
+      <p class="tagline">Lobby erstellen • Freunde battlen • Freistunde retten</p>
+    </header>
+
+    <!-- STEP 1: Main Menu / Profile -->
+    <section id="screen-welcome" class="card active">
+      <div class="input-group">
+        <label for="username">DEIN AVATAR / NAME</label>
+        <input type="text" id="username" placeholder="z.B. PausenProfi" maxlength="12" />
+      </div>
+
+      <div class="divider"><span>SPIELEN</span></div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary btn-bounce" onclick="showJoinInput()">
+          🎮 LOBBY BEITRETEN
+        </button>
+        <button class="btn btn-secondary" onclick="createLobby()">
+          👑 LOBBY ERSTELLEN (HOST)
+        </button>
+      </div>
+
+      <!-- Join Pin Input Box (hidden by default) -->
+      <div id="join-box" class="join-box hidden">
+        <input type="text" id="game-pin" placeholder="GAME-PIN (z.B. A7X9)" maxlength="5" />
+        <button class="btn btn-accent" onclick="joinLobby()">LOS! 🚀</button>
+      </div>
+    </section>
+
+    <!-- STEP 2: Lobby Screen -->
+    <section id="screen-lobby" class="card hidden">
+      <div class="lobby-header">
+        <div class="pin-display">
+          <span>GAME PIN:</span>
+          <h2 id="display-pin">----</h2>
+        </div>
+        <div id="connection-status" class="status-badge">Verbinde...</div>
+      </div>
+
+      <div class="player-list-container">
+        <h3>SPIELER IN DER LOBBY (<span id="player-count">0</span>)</h3>
+        <div id="player-grid" class="player-grid">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- Controls for Host only -->
+      <div id="host-controls" class="host-panel hidden">
+        <div class="setting-row">
+          <label for="round-select">Rundenzahl:</label>
+          <select id="round-select">
+            <option value="3">3 Runden</option>
+            <option value="5" selected>5 Runden</option>
+            <option value="10">10 Runden</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-bounce" onclick="startGame()">
+          🚀 SPIEL JETZT STARTEN
+        </button>
+      </div>
+
+      <p id="client-wait-msg" class="wait-msg">Warte darauf, dass der Host das Spiel startet...</p>
+    </section>
+
+    <!-- STEP 3: Game Canvas Area -->
+    <section id="screen-game" class="card hidden">
+      <div class="game-header">
+        <span id="round-indicator">Runde 1 / 5</span>
+        <span id="game-title">Speedtyping</span>
+      </div>
+      <div id="game-viewport" class="game-viewport">
+        <!-- Minispiel HTML/Canvas wird hier rein geladen -->
+        <h2>Bereit machen...</h2>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
