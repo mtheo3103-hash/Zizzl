@@ -1,11 +1,11 @@
-// Live-URL deines Render-Backends
 const BACKEND_URL = "https://zizzl-server.onrender.com"; 
 
 let socket;
 let currentPin = null;
 let isHost = false;
+let myPlayerColor = { id: "red", hex: "#ff4757", dark: "#2f3542" }; // Fallback
 
-// --- UPGRADED AUDIO-SYNTHESIZER (8-Bit Chiptune Theme) ---
+// --- AUDIO SYNTHESIZER ---
 let audioCtx;
 let isMusicPlaying = false;
 let musicInterval = null;
@@ -17,12 +17,8 @@ let noteIdx = 0;
 let bassIdx = 0;
 
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
 }
 
 function playTone(freq, duration, type = "square", volume = 0.05) {
@@ -62,17 +58,14 @@ function toggleMusic() {
   const icon = document.getElementById("music-icon");
   if (isMusicPlaying) {
     icon.style.fill = "#2ed573";
-    
     musicInterval = setInterval(() => {
       playTone(melodyNotes[noteIdx], 0.15, "square", 0.03);
       noteIdx = (noteIdx + 1) % melodyNotes.length;
     }, 180);
-
     bassInterval = setInterval(() => {
       playTone(bassNotes[bassIdx], 0.3, "triangle", 0.05);
       bassIdx = (bassIdx + 1) % bassNotes.length;
     }, 360);
-
   } else {
     icon.style.fill = "#2f3542";
     clearInterval(musicInterval);
@@ -84,19 +77,14 @@ function showAlert(message) {
   const alertBox = document.getElementById("alert-box");
   alertBox.innerText = message;
   alertBox.classList.remove("hidden");
-  setTimeout(() => {
-    alertBox.classList.add("hidden");
-  }, 4000);
+  setTimeout(() => alertBox.classList.add("hidden"), 4000);
 }
 
 function toggleCardSelection(checkbox) {
   playPopSound();
   const card = checkbox.closest('.game-preview-card');
-  if (checkbox.checked) {
-    card.classList.add('active');
-  } else {
-    card.classList.remove('active');
-  }
+  if (checkbox.checked) card.classList.add('active');
+  else card.classList.remove('active');
 }
 
 function showJoinInput() {
@@ -130,9 +118,11 @@ function connectSocket() {
       }
     });
 
-    socket.on("lobbyCreated", ({ pin, players, isHost: hostFlag }) => {
+    socket.on("lobbyCreated", ({ pin, players, isHost: hostFlag, myColor }) => {
       currentPin = pin;
       isHost = hostFlag;
+      if (myColor) myPlayerColor = myColor;
+
       document.getElementById("display-pin").innerText = pin;
       switchScreen("screen-lobby");
       document.getElementById("host-controls").classList.remove("hidden");
@@ -140,8 +130,10 @@ function connectSocket() {
       renderPlayers(players);
     });
 
-    socket.on("joinedLobby", ({ pin, players }) => {
+    socket.on("joinedLobby", ({ pin, players, myColor }) => {
       currentPin = pin;
+      if (myColor) myPlayerColor = myColor;
+
       document.getElementById("display-pin").innerText = pin;
       switchScreen("screen-lobby");
       document.getElementById("host-controls").classList.add("hidden");
@@ -199,28 +191,31 @@ function startGame() {
       document.querySelectorAll('.game-preview-card input:checked')
     ).map(cb => cb.value);
 
-    if (selectedGames.length === 0) {
-      showAlert("Wähle mindestens ein Spiel aus!");
-      return;
-    }
+    if (selectedGames.length === 0) return showAlert("Wähle mindestens ein Spiel aus!");
 
     socket.emit("updateSettings", { pin: currentPin, rounds, selectedGames });
     socket.emit("startGame", { pin: currentPin });
   }
 }
 
+// Rendert Spieler-Karten in der Lobby mit ihrer eigenen Farbe
 function renderPlayers(players) {
   const grid = document.getElementById("player-grid");
   grid.innerHTML = "";
   players.forEach(p => {
     const card = document.createElement("div");
     card.className = "player-card";
-    card.innerText = p.username;
+    const colorHex = p.color ? p.color.hex : "#2ed573";
+    
+    card.style.borderColor = colorHex;
+    card.style.boxShadow = `0px 3px 0px ${colorHex}`;
+    card.innerHTML = `<span class="color-dot" style="background: ${colorHex};"></span> ${p.username}`;
     grid.appendChild(card);
   });
   document.getElementById("player-count").innerText = players.length;
 }
 
+// Leaderboard mit individuellen Spielerfarben
 function renderLeaderboard(players) {
   const list = document.getElementById("leaderboard-list");
   if (!list) return;
@@ -228,16 +223,18 @@ function renderLeaderboard(players) {
   players.forEach((p, index) => {
     const li = document.createElement("li");
     li.className = "leaderboard-item";
+    const pColor = p.color ? p.color.hex : "#ff4757";
+
     li.innerHTML = `
       <span class="rank">#${index + 1}</span>
-      <span class="p-name">${p.username}</span>
+      <span class="p-name" style="color: ${pColor}; font-weight: 700;">${p.username}</span>
       <span class="p-score">${p.currentScore || 0} PTS</span>
     `;
     list.appendChild(li);
   });
 }
 
-// --- OPTIMIERTES SNAKE-GAME MIT DYNAMISCHEN AUGEN & TOUCH CONTROLS ---
+// --- SNAKE GAME MIT EIGENER SPIELERFARBE ---
 function startSnakeGame(durationSeconds = 30) {
   const viewport = document.getElementById("game-viewport");
   viewport.innerHTML = `
@@ -249,11 +246,11 @@ function startSnakeGame(durationSeconds = 30) {
       <canvas id="snakeCanvas" width="300" height="300"></canvas>
       
       <div class="dpad-controls">
-        <button class="dpad-btn up" id="btn-up">▲</button>
+        <button class="dpad-btn up" id="btn-up" style="border-color: ${myPlayerColor.hex}">▲</button>
         <div class="dpad-row">
-          <button class="dpad-btn left" id="btn-left">◄</button>
-          <button class="dpad-btn down" id="btn-down">▼</button>
-          <button class="dpad-btn right" id="btn-right">►</button>
+          <button class="dpad-btn left" id="btn-left" style="border-color: ${myPlayerColor.hex}">◄</button>
+          <button class="dpad-btn down" id="btn-down" style="border-color: ${myPlayerColor.hex}">▼</button>
+          <button class="dpad-btn right" id="btn-right" style="border-color: ${myPlayerColor.hex}">►</button>
         </div>
       </div>
     </div>
@@ -353,6 +350,7 @@ function startSnakeGame(durationSeconds = 30) {
       }
     }
 
+    // Apfel
     const scale = Math.sin(applePulse) * 1.2;
     const ax = apple.x * gridSize + gridSize / 2;
     const ay = apple.y * gridSize + gridSize / 2;
@@ -365,16 +363,19 @@ function startSnakeGame(durationSeconds = 30) {
     ctx.fillStyle = "#2ed573";
     ctx.fillRect(ax - 1, ay - gridSize/2, 3, 3);
 
+    // Schlange in EIGENER SPIELERFARBE zeichnen
     snake.forEach((part, index) => {
       const px = part.x * gridSize;
       const py = part.y * gridSize;
 
       if (index === 0) {
-        ctx.fillStyle = "#2ed573";
+        // Kopf = Eigene Spielerfarbe
+        ctx.fillStyle = myPlayerColor.hex;
         ctx.beginPath();
         ctx.roundRect(px, py, gridSize, gridSize, 5);
         ctx.fill();
 
+        // Augen
         ctx.fillStyle = "#ffffff";
         let e1X = px + 3, e1Y = py + 3;
         let e2X = px + 9, e2Y = py + 3;
@@ -396,7 +397,8 @@ function startSnakeGame(durationSeconds = 30) {
         ctx.fill();
 
       } else {
-        ctx.fillStyle = "#26af5f";
+        // Körper = Leicht abgedunkelter Ton der Spielerfarbe
+        ctx.fillStyle = myPlayerColor.dark || myPlayerColor.hex;
         ctx.beginPath();
         ctx.roundRect(px + 1, py + 1, gridSize - 2, gridSize - 2, 4);
         ctx.fill();
