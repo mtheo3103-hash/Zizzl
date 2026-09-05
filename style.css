@@ -432,6 +432,21 @@ canvas {
   font-weight: 700;
 }
 
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid var(--dark);
+}
+
 .leaderboard-item .rank { color: var(--primary); }
 .leaderboard-item .p-score { color: var(--purple); }
 
