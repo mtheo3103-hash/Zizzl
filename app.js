@@ -1,11 +1,11 @@
-// ⚠️ Füge hier nach dem Render-Deployment deine echte Render-URL ein!
+// Trage hier die Live-URL deines Render-Backends ein
 const BACKEND_URL = "https://zizzl-server.onrender.com"; 
 
 let socket;
 let currentPin = null;
 let isHost = false;
 
-// Web Audio API Synthesizer (Lobby Musik)
+// Audio-Synthesizer
 let audioCtx;
 let isMusicPlaying = false;
 let musicInterval = null;
@@ -53,6 +53,25 @@ function toggleMusic() {
   }
 }
 
+function showAlert(message) {
+  const alertBox = document.getElementById("alert-box");
+  alertBox.innerText = message;
+  alertBox.classList.remove("hidden");
+  setTimeout(() => {
+    alertBox.classList.add("hidden");
+  }, 4000);
+}
+
+function toggleCardSelection(checkbox) {
+  playPopSound();
+  const card = checkbox.closest('.game-preview-card');
+  if (checkbox.checked) {
+    card.classList.add('active');
+  } else {
+    card.classList.remove('active');
+  }
+}
+
 function showJoinInput() {
   playPopSound();
   document.getElementById("join-box").classList.remove("hidden");
@@ -61,7 +80,7 @@ function showJoinInput() {
 function getUsername() {
   const name = document.getElementById("username").value.trim();
   if (name.length === 0) {
-    alert("Bitte gib zuerst einen Spielernamen ein!");
+    showAlert("Bitte gib zuerst einen Spielernamen ein!");
     return null;
   }
   return name;
@@ -79,7 +98,7 @@ function connectSocket() {
     socket.on("connect", () => {
       const statusEl = document.getElementById("connection-status");
       if (statusEl) {
-        statusEl.innerText = "Verbunden!";
+        statusEl.innerText = "VERBUNDEN";
         statusEl.style.background = "#2ed573";
       }
     });
@@ -108,7 +127,7 @@ function connectSocket() {
     });
 
     socket.on("errorMsg", (msg) => {
-      alert(msg);
+      showAlert(msg);
     });
 
     socket.on("gameStarted", ({ round, totalRounds, gameType }) => {
@@ -116,7 +135,6 @@ function connectSocket() {
       document.getElementById("round-indicator").innerText = `Runde ${round} / ${totalRounds}`;
       document.getElementById("game-title").innerText = gameType.toUpperCase();
       
-      // Starte das Snake Minispiel
       if (gameType === "snake") {
         startSnakeGame(30);
       }
@@ -138,7 +156,7 @@ function createLobby() {
 
 function joinLobby() {
   const pin = document.getElementById("game-pin").value.trim();
-  if (pin.length < 4) return alert("Bitte eine gültige 4-stellige PIN eingeben!");
+  if (pin.length < 4) return showAlert("Gültige 4-stellige PIN eingeben!");
   const username = getUsername();
   if (!username) return;
   playPopSound();
@@ -151,11 +169,11 @@ function startGame() {
   if (socket && currentPin && isHost) {
     const rounds = document.getElementById("round-select").value;
     const selectedGames = Array.from(
-      document.querySelectorAll('.game-option input:checked')
+      document.querySelectorAll('.game-preview-card input:checked')
     ).map(cb => cb.value);
 
     if (selectedGames.length === 0) {
-      alert("Bitte wähle mindestens ein Spiel aus!");
+      showAlert("Wähle mindestens ein Spiel aus!");
       return;
     }
 
@@ -192,7 +210,7 @@ function renderLeaderboard(players) {
   });
 }
 
-// Minispiel: Snake Rush
+// TEXTURIERTES CANVAS-SNAKE MIT ANIMATIONEN
 function startSnakeGame(durationSeconds = 30) {
   const viewport = document.getElementById("game-viewport");
   viewport.innerHTML = `
@@ -210,34 +228,52 @@ function startSnakeGame(durationSeconds = 30) {
   const gridSize = 15;
   const tileCount = canvas.width / gridSize;
 
-  let snake = [{ x: 10, y: 10 }];
-  let velocity = { x: 1, y: 0 };
+  let snake = [{ x: 10, y: 10 }, { x: 10, y: 11 }];
+  let velocity = { x: 0, y: -1 };
   let apple = { x: 5, y: 5 };
   let score = 0;
   let timeLeft = durationSeconds;
   let isGameOver = false;
+  let applePulse = 0;
 
-  let touchStartX = 0, touchStartY = 0;
-  canvas.addEventListener('touchstart', e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  });
+  function changeDirection(newX, newY) {
+    if (newX !== -velocity.x && newY !== -velocity.y) {
+      velocity = { x: newX, y: newY };
+    }
+  }
 
-  canvas.addEventListener('touchend', e => {
-    const diffX = e.changedTouches[0].clientX - touchStartX;
-    const diffY = e.changedTouches[0].clientY - touchStartY;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0 && velocity.x === 0) velocity = { x: 1, y: 0 };
-      else if (diffX < 0 && velocity.x === 0) velocity = { x: -1, y: 0 };
-    } else {
-      if (diffY > 0 && velocity.y === 0) velocity = { x: 0, y: 1 };
-      else if (diffY < 0 && velocity.y === 0) velocity = { x: 0, y: -1 };
+  window.addEventListener("keydown", (e) => {
+    switch (e.key) {
+      case "ArrowUp": case "w": changeDirection(0, -1); break;
+      case "ArrowDown": case "s": changeDirection(0, 1); break;
+      case "ArrowLeft": case "a": changeDirection(-1, 0); break;
+      case "ArrowRight": case "d": changeDirection(1, 0); break;
     }
   });
 
+  let touchStartX = 0, touchStartY = 0;
+  canvas.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  canvas.addEventListener("touchend", (e) => {
+    const diffX = e.changedTouches[0].clientX - touchStartX;
+    const diffY = e.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(diffX) > 20 || Math.abs(diffY) > 20) {
+      if (Math.abs(diffX) > Math.abs(diffY)) {
+        changeDirection(diffX > 0 ? 1 : -1, 0);
+      } else {
+        changeDirection(0, diffY > 0 ? 1 : -1);
+      }
+    }
+  }, { passive: true });
+
   const gameInterval = setInterval(() => {
     if (isGameOver) return;
+
+    applePulse += 0.2;
 
     const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
 
@@ -248,6 +284,7 @@ function startSnakeGame(durationSeconds = 30) {
 
     if (head.x === apple.x && head.y === apple.y) {
       score += 10;
+      playTone(880, 0.1, "square", 0.1);
       document.getElementById("snake-score").innerText = score;
       socket.emit("submitScore", { pin: currentPin, score: score });
 
@@ -261,18 +298,49 @@ function startSnakeGame(durationSeconds = 30) {
 
     snake.unshift(head);
 
-    ctx.fillStyle = "#2f3542";
+    // Grid Hintergrund
+    ctx.fillStyle = "#1e272e";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#ff4757";
-    ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize - 2, gridSize - 2);
+    for (let x = 0; x < tileCount; x++) {
+      for (let y = 0; y < tileCount; y++) {
+        if ((x + y) % 2 === 0) {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+          ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+        }
+      }
+    }
 
-    ctx.fillStyle = "#2ed573";
-    snake.forEach(part => {
-      ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+    // Apfel mit Glow & Textur
+    const appleSizeScale = Math.sin(applePulse) * 1.5;
+    ctx.fillStyle = "#ff4757";
+    ctx.beginPath();
+    ctx.arc(
+      apple.x * gridSize + gridSize / 2,
+      apple.y * gridSize + gridSize / 2,
+      (gridSize / 2 - 2) + appleSizeScale,
+      0, Math.PI * 2
+    );
+    ctx.fill();
+
+    // Schlange mit abgerundeten Textur-Segmenten
+    snake.forEach((part, index) => {
+      ctx.fillStyle = index === 0 ? "#2ed573" : "#26af5f";
+      
+      const px = part.x * gridSize;
+      const py = part.y * gridSize;
+      const radius = index === 0 ? 6 : 4;
+
+      ctx.beginPath();
+      ctx.roundRect(px + 1, py + 1, gridSize - 2, gridSize - 2, radius);
+      ctx.fill();
+
+      // Glanz-Effekt
+      ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.fillRect(px + 3, py + 3, 3, 3);
     });
 
-  }, 120);
+  }, 110);
 
   const timerInterval = setInterval(() => {
     timeLeft--;
@@ -282,7 +350,7 @@ function startSnakeGame(durationSeconds = 30) {
       clearInterval(gameInterval);
       clearInterval(timerInterval);
       isGameOver = true;
-      viewport.innerHTML = `<h3>Zeit abgelaufen! Runde beendet.</h3>`;
+      viewport.innerHTML = `<h3 style="margin-top: 40px; color: var(--dark);">Zeit abgelaufen!</h3>`;
     }
   }, 1000);
 }
